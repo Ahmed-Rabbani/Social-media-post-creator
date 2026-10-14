@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Post Studio</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#080b12;
+  --panel:#10151f;
+  --panel-soft:#151b27;
+  --border:rgba(255,255,255,.09);
+  --text:#f4f6fb;
+  --muted:#8d97a9;
+  --accent:#697cff;
+  --accent-2:#8a5cf5;
+  --success:#35d58a;
+  --danger:#ff647c;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 80% 0%,rgba(105,124,255,.14),transparent 30%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.app{
+  width:min(1500px,100%);
+  height:100vh;
+  margin:auto;
+  display:grid;
+  grid-template-rows:70px 1fr;
+  overflow:hidden;
+}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,11,18,.88);
+  backdrop-filter:blur(16px);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-weight:750;
+}
+.logo{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  font-weight:900;
+}
+.header-actions{display:flex;gap:9px}
+.nav{
+  padding:9px 15px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:var(--muted);
+}
+.nav.active{color:#fff;border-color:rgba(105,124,255,.5)}
+.nav.approval{
+  border:0;
+  color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+}
+
+main{
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--border);
+}
+.panel{
+  min-width:0;
+  min-height:0;
+  background:rgba(8,11,18,.96);
+  display:flex;
+  flex-direction:column;
+}
+.panel-head{
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 21px;
+  border-bottom:1px solid var(--border);
+}
+.panel-head h2{margin:0;font-size:15px}
+.status{font-size:12px;color:var(--muted)}
+
+.chat{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  padding:22px;
+}
+.message{
+  max-width:82%;
+  margin-bottom:17px;
+}
+.message.user{margin-left:auto}
+.bubble{
+  padding:12px 14px;
+  border-radius:15px;
+  font-size:14px;
+  line-height:1.55;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.message.assistant .bubble{
+  background:var(--panel);
+  border:1px solid var(--border);
+}
+.message.user .bubble{
+  background:linear-gradient(135deg,#5969e9,#7653d9);
+}
+.time{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:10px;
+}
+.message.user .time{text-align:right}
+
+.composer{
+  padding:15px 18px 18px;
+  border-top:1px solid var(--border);
+  background:rgba(16,21,31,.9);
+}
+.composer-row{
+  display:flex;
+  gap:9px;
+  align-items:flex-end;
+}
+textarea{
+  flex:1;
+  min-height:48px;
+  max-height:130px;
+  resize:vertical;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  outline:none;
+  color:var(--text);
+  background:#0a0e16;
+}
+textarea:focus{border-color:rgba(105,124,255,.6)}
+.send{
+  height:48px;
+  padding:0 18px;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+}
+.suggest{
+  width:100%;
+  margin-top:9px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid rgba(105,124,255,.3);
+  color:#cbd1ff;
+  background:rgba(105,124,255,.07);
+}
+
+.preview{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  padding:22px;
+}
+.empty{
+  height:100%;
+  min-height:300px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:var(--muted);
+}
+.empty-icon{
+  width:58px;
+  height:58px;
+  margin:auto auto 12px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:var(--panel-soft);
+  font-size:24px;
+}
+
+.post-card{
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:var(--panel);
+}
+.post-image{
+  width:100%;
+  max-height:520px;
+  display:block;
+  object-fit:cover;
+  background:#090c12;
+}
+.post-content{padding:18px 19px}
+.post-title{
+  margin:0 0 9px;
+  font-size:21px;
+  line-height:1.3;
+}
+.post-description{
+  margin:0;
+  color:#b9c1cf;
+  line-height:1.65;
+  white-space:pre-wrap;
+}
+.field{
+  margin-top:17px;
+}
+.field-label{
+  margin-bottom:7px;
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.field-value{
+  padding:11px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:#dce1eb;
+  background:#0b0f17;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.tag{
+  padding:5px 9px;
+  border-radius:999px;
+  border:1px solid rgba(105,124,255,.2);
+  color:#c3c9ff;
+  background:rgba(105,124,255,.09);
+  font-size:12px;
+}
+
+.approval-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:13px 18px;
+  border-top:1px solid var(--border);
+}
+.approval-info{
+  color:var(--muted);
+  font-size:12px;
+}
+.approve{
+  padding:11px 18px;
+  border:0;
+  border-radius:10px;
+  color:#06150e;
+  background:var(--success);
+  font-weight:800;
+}
+
+.loader{
+  display:inline-flex;
+  gap:4px;
+}
+.loader i{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#9ba4b4;
+  animation:blink 1s infinite;
+}
+.loader i:nth-child(2){animation-delay:.15s}
+.loader i:nth-child(3){animation-delay:.3s}
+@keyframes blink{
+  50%{opacity:.2;transform:translateY(-2px)}
+}
+
+@media(max-width:850px){
+  .app{
+    height:auto;
+    min-height:100vh;
+    overflow:visible;
+  }
+  main{grid-template-columns:1fr}
+  .panel{min-height:60vh}
+  header{padding:0 14px}
+  .header-actions .nav:first-child{display:none}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="logo">S</div>
+    <div>Social Post Studio</div>
+  </div>
+
+  <div class="header-actions">
+    <button class="nav active" type="button">Chat</button>
+    <button class="nav approval" id="approvalNav" type="button" disabled>
+      Approval
+    </button>
+  </div>
+</header>
+
+<main>
+
+<section class="panel">
+
+  <div class="panel-head">
+    <h2>Post Assistant</h2>
+    <div class="status" id="status">Ready</div>
+  </div>
+
+  <div class="chat" id="chat">
+    <div class="message assistant">
+      <div class="bubble">
+        Hi! Tell me your social media post idea and I'll prepare the post for you.
+      </div>
+      <div class="time">Now</div>
+    </div>
+  </div>
+
+  <div class="composer">
+
+    <div class="composer-row">
+      <textarea
+        id="idea"
+        rows="1"
+        placeholder="Enter Your Post Idea"
+      ></textarea>
+
+      <button class="send" id="send" type="button">
+        Send
+      </button>
+    </div>
+
+    <button class="suggest" id="suggest" type="button">
+      Suggest me some posts
+    </button>
+
+  </div>
+
+</section>
+
+<section class="panel">
+
+  <div class="panel-head">
+    <h2>Post Preview</h2>
+    <div class="status" id="previewStatus">
+      Waiting for post
+    </div>
+  </div>
+
+  <div class="preview" id="preview">
+
+    <div class="empty">
+      <div>
+        <div class="empty-icon">✦</div>
+        Your generated post will appear here.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="approval-bar">
+    <div class="approval-info" id="approvalInfo">
+      Post and image must be ready before approval.
+    </div>
+
+    <button
+      class="approve"
+      id="approve"
+      type="button"
+      disabled
+    >
+      Approve Post
+    </button>
+  </div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+
+/*
+|--------------------------------------------------------------------------
+| CONFIGURATION
+|--------------------------------------------------------------------------
+| Put your ONE n8n Webhook URL here.
+|--------------------------------------------------------------------------
+*/
+
+const WEBHOOK_URL = "http://localhost:5678/webhook-test/social-media-automation";
+
+
+/*
+|--------------------------------------------------------------------------
+| ELEMENTS
+|--------------------------------------------------------------------------
+*/
+
+const chat = document.getElementById("chat");
+const idea = document.getElementById("idea");
+const sendButton = document.getElementById("send");
+const suggestButton = document.getElementById("suggest");
+const approveButton = document.getElementById("approve");
+const approvalNav = document.getElementById("approvalNav");
+
+const statusElement = document.getElementById("status");
+const previewStatus = document.getElementById("previewStatus");
+const approvalInfo = document.getElementById("approvalInfo");
+const preview = document.getElementById("preview");
+
+
+/*
+|--------------------------------------------------------------------------
+| STATE
+|--------------------------------------------------------------------------
+*/
+
+let latestPost = null;
+let requestRunning = false;
+let readyForApproval = false;
+
+
+/*
+|--------------------------------------------------------------------------
+| CHAT
+|--------------------------------------------------------------------------
+*/
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+
+function addMessage(text, type = "assistant") {
+
+  const message = document.createElement("div");
+  message.className = `message ${type}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+
+  const time = document.createElement("div");
+  time.className = "time";
+  time.textContent = getTime();
+
+  message.appendChild(bubble);
+  message.appendChild(time);
+
+  chat.appendChild(message);
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+
+function showLoading() {
+
+  removeLoading();
+
+  const message = document.createElement("div");
+
+  message.id = "loadingMessage";
+  message.className = "message assistant";
+
+  message.innerHTML = `
+    <div class="bubble loader">
+      <i></i>
+      <i></i>
+      <i></i>
+    </div>
+  `;
+
+  chat.appendChild(message);
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+
+function removeLoading() {
+
+  const loading = document.getElementById("loadingMessage");
+
+  if (loading) {
+    loading.remove();
+  }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| UI STATE
+|--------------------------------------------------------------------------
+*/
+
+function setRequestState(running) {
+
+  requestRunning = running;
+
+  sendButton.disabled = running;
+  suggestButton.disabled = running;
+
+  statusElement.textContent = running
+    ? "Generating..."
+    : "Ready";
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| NORMALIZE N8N RESPONSE
+|--------------------------------------------------------------------------
+*/
+
+function normalizeResponse(data) {
+
+  if (Array.isArray(data)) {
+
+    if (data.length === 1) {
+      return normalizeResponse(data[0]);
+    }
+
+    return data[0] || {};
+  }
+
+
+  if (typeof data === "string") {
+
+    try {
+      return normalizeResponse(JSON.parse(data));
+    } catch {
+      return {
+        message: data
+      };
+    }
+  }
+
+
+  if (!data || typeof data !== "object") {
+    return {};
+  }
+
+
+  /*
+    Handles responses wrapped inside:
+    data
+    response
+    body
+    result
+  */
+
+  for (const key of [
+    "data",
+    "response",
+    "body",
+    "result"
+  ]) {
+
+    if (typeof data[key] === "string") {
+
+      try {
+        return normalizeResponse(
+          JSON.parse(data[key])
+        );
+      } catch {}
+    }
+
+
+    if (
+      data[key] &&
+      typeof data[key] === "object"
+    ) {
+
+      return normalizeResponse(data[key]);
+    }
+  }
+
+
+  return data;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| GET IMAGE FROM N8N RESPONSE
+|--------------------------------------------------------------------------
+|
+| Expected:
+|
+| image: {
+|   data: "BASE64...",
+|   mimeType: "image/png"
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+function getImageSource(post) {
+
+  if (
+    !post.image ||
+    typeof post.image !== "object"
+  ) {
+    return null;
+  }
+
+
+  const base64 = post.image.data || "";
+
+  if (!base64) {
+    return null;
+  }
+
+
+  const mimeType =
+    post.image.mimeType ||
+    "image/png";
+
+
+  /*
+    If n8n already sends a data URL,
+    don't add another prefix.
+  */
+
+  if (
+    base64.startsWith("data:image/")
+  ) {
+    return base64;
+  }
+
+
+  return `data:${mimeType};base64,${base64}`;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TAGS
+|--------------------------------------------------------------------------
+*/
+
+function getArray(value) {
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (!value) {
+    return [];
+  }
+
+  return [value];
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| RENDER POST
+|--------------------------------------------------------------------------
+*/
+
+function renderPost(post) {
+
+  latestPost = post;
+
+
+  const title =
+    post.title || "Untitled Post";
+
+
+  const description =
+    post.description || "";
+
+
+  const tags =
+    getArray(post.tags);
+
+
+  const hashtags =
+    getArray(post.hashtags);
+
+
+  const callToAction =
+    post.call_to_action || "";
+
+
+  const altText =
+    post.alt_text || "";
+
+
+  const slug =
+    post.slug || "";
+
+
+  const imageSource =
+    getImageSource(post);
+
+
+  preview.innerHTML = "";
+
+
+  const card =
+    document.createElement("article");
+
+  card.className = "post-card";
+
+
+  /*
+    IMAGE
+  */
+
+  if (imageSource) {
+
+    const image =
+      document.createElement("img");
+
+    image.className = "post-image";
+
+    image.src = imageSource;
+
+    image.alt =
+      altText || title;
+
+    card.appendChild(image);
+  }
+
+
+  const content =
+    document.createElement("div");
+
+  content.className = "post-content";
+
+
+  /*
+    TITLE
+  */
+
+  const titleElement =
+    document.createElement("h1");
+
+  titleElement.className = "post-title";
+
+  titleElement.textContent = title;
+
+  content.appendChild(titleElement);
+
+
+  /*
+    DESCRIPTION
+  */
+
+  if (description) {
+
+    const descriptionElement =
+      document.createElement("p");
+
+    descriptionElement.className =
+      "post-description";
+
+    descriptionElement.textContent =
+      description;
+
+    content.appendChild(
+      descriptionElement
+    );
+  }
+
+
+  /*
+    TAGS
+  */
+
+  if (tags.length) {
+
+    const field =
+      document.createElement("div");
+
+    field.className = "field";
+
+    field.innerHTML =
+      `<div class="field-label">Tags</div>`;
+
+    const tagsBox =
+      document.createElement("div");
+
+    tagsBox.className = "tags";
+
+
+    tags.forEach(tag => {
+
+      const element =
+        document.createElement("span");
+
+      element.className = "tag";
+
+      element.textContent = tag;
+
+      tagsBox.appendChild(element);
+    });
+
+
+    field.appendChild(tagsBox);
+
+    content.appendChild(field);
+  }
+
+
+  /*
+    HASHTAGS
+  */
+
+  if (hashtags.length) {
+
+    const field =
+      document.createElement("div");
+
+    field.className = "field";
+
+    field.innerHTML =
+      `<div class="field-label">Hashtags</div>`;
+
+    const tagsBox =
+      document.createElement("div");
+
+    tagsBox.className = "tags";
+
+
+    hashtags.forEach(hashtag => {
+
+      const element =
+        document.createElement("span");
+
+      element.className = "tag";
+
+      element.textContent =
+        hashtag.startsWith("#")
+          ? hashtag
+          : `#${hashtag}`;
+
+      tagsBox.appendChild(element);
+    });
+
+
+    field.appendChild(tagsBox);
+
+    content.appendChild(field);
+  }
+
+
+  /*
+    CALL TO ACTION
+  */
+
+  if (callToAction) {
+
+    content.appendChild(
+      createField(
+        "Call To Action",
+        callToAction
+      )
+    );
+  }
+
+
+  /*
+    ALT TEXT
+  */
+
+  if (altText) {
+
+    content.appendChild(
+      createField(
+        "Alt Text",
+        altText
+      )
+    );
+  }
+
+
+  /*
+    SLUG
+  */
+
+  if (slug) {
+
+    content.appendChild(
+      createField(
+        "Slug",
+        slug
+      )
+    );
+  }
+
+
+  card.appendChild(content);
+
+  preview.appendChild(card);
+
+
+  /*
+    APPROVAL
+  */
+
+  const hasImage =
+    Boolean(imageSource);
+
+
+  const hasContent =
+    Boolean(
+      title ||
+      description ||
+      tags.length ||
+      hashtags.length
+    );
+
+
+  if (
+    hasImage &&
+    hasContent
+  ) {
+
+    readyForApproval = true;
+
+    approveButton.disabled = false;
+    approvalNav.disabled = false;
+
+    previewStatus.textContent =
+      "Post ready for approval";
+
+    approvalInfo.textContent =
+      "Everything is ready. Review the post and approve it.";
+
+  } else {
+
+    readyForApproval = false;
+
+    approveButton.disabled = true;
+    approvalNav.disabled = true;
+
+    previewStatus.textContent =
+      hasContent
+        ? "Waiting for image"
+        : "Waiting for post";
+
+    approvalInfo.textContent =
+      "Post data and image are required before approval.";
+  }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FIELD HELPER
+|--------------------------------------------------------------------------
+*/
+
+function createField(label, value) {
+
+  const field =
+    document.createElement("div");
+
+  field.className = "field";
+
+
+  const labelElement =
+    document.createElement("div");
+
+  labelElement.className =
+    "field-label";
+
+  labelElement.textContent =
+    label;
+
+
+  const valueElement =
+    document.createElement("div");
+
+  valueElement.className =
+    "field-value";
+
+  valueElement.textContent =
+    value;
+
+
+  field.appendChild(labelElement);
+  field.appendChild(valueElement);
+
+
+  return field;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| N8N REQUEST
+|--------------------------------------------------------------------------
+*/
+
+async function sendToN8n(
+  message,
+  type,
+  approved = false
+) {
+
+  if (
+    !WEBHOOK_URL ||
+    WEBHOOK_URL ===
+      "YOUR_N8N_WEBHOOK_URL"
+  ) {
+
+    addMessage(
+      "Please add your n8n Webhook URL in the WEBHOOK_URL variable."
+    );
+
+    return null;
+  }
+
+
+  setRequestState(true);
+  showLoading();
+
+
+  try {
+
+    const payload = {
+
+      message,
+
+      type,
+
+      approved,
+
+      timestamp:
+        new Date().toISOString()
+    };
+
+
+    const response =
+      await fetch(
+        WEBHOOK_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify(payload)
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    const contentType =
+      response.headers.get(
+        "content-type"
+      ) || "";
+
+
+    let result;
+
+
+    if (
+      contentType.includes(
+        "application/json"
+      )
+    ) {
+
+      result =
+        await response.json();
+
+    } else {
+
+      result =
+        await response.text();
+    }
+
+
+    removeLoading();
+
+
+    const data =
+      normalizeResponse(result);
+
+
+    /*
+      Approval response
+    */
+
+    if (
+      type === "approval"
+    ) {
+
+      addMessage(
+        data.message ||
+        "Post approval has been sent to n8n."
+      );
+
+      previewStatus.textContent =
+        "Approved";
+
+      approvalInfo.textContent =
+        "Approval sent. The automation can continue.";
+
+      return data;
+    }
+
+
+    /*
+      Normal post response
+    */
+
+    if (
+      data.message &&
+      !data.title &&
+      !data.description &&
+      !data.image
+    ) {
+
+      addMessage(
+        String(data.message)
+      );
+    }
+
+
+    renderPost(data);
+
+    return data;
+
+  } catch (error) {
+
+    removeLoading();
+
+    addMessage(
+      "I couldn't connect to the n8n webhook. Please check the webhook URL and workflow."
+    );
+
+    console.error(error);
+
+    return null;
+
+  } finally {
+
+    setRequestState(false);
+  }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SEND POST IDEA
+|--------------------------------------------------------------------------
+*/
+
+function sendIdea() {
+
+  const text =
+    idea.value.trim();
+
+
+  if (
+    !text ||
+    requestRunning
+  ) {
+    return;
+  }
+
+
+  addMessage(
+    text,
+    "user"
+  );
+
+
+  idea.value = "";
+
+
+  sendToN8n(
+    text,
+    "post_idea",
+    false
+  );
+}
+
+
+sendButton.addEventListener(
+  "click",
+  sendIdea
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| ENTER TO SEND
+|--------------------------------------------------------------------------
+*/
+
+idea.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+
+      event.preventDefault();
+
+      sendIdea();
+    }
+  }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| SUGGEST POSTS
+|--------------------------------------------------------------------------
+*/
+
+suggestButton.addEventListener(
+  "click",
+  () => {
+
+    if (requestRunning) {
+      return;
+    }
+
+
+    const message =
+      "Suggest me some posts";
+
+
+    addMessage(
+      message,
+      "user"
+    );
+
+
+    sendToN8n(
+      message,
+      "suggest_posts",
+      false
+    );
+  }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| APPROVAL
+|--------------------------------------------------------------------------
+*/
+
+async function approvePost() {
+
+  if (
+    !readyForApproval ||
+    !latestPost ||
+    requestRunning
+  ) {
+    return;
+  }
+
+
+  readyForApproval = false;
+
+  approveButton.disabled = true;
+  approvalNav.disabled = true;
+
+
+  previewStatus.textContent =
+    "Sending approval...";
+
+  approvalInfo.textContent =
+    "Sending your approval to n8n...";
+
+
+  const approvalPayload = {
+
+    action:
+      "approve_post",
+
+    post:
+      latestPost
+  };
+
+
+  const result =
+    await sendToN8n(
+      JSON.stringify(
+        approvalPayload
+      ),
+      "approval",
+      true
+    );
+
+
+  if (!result) {
+
+    /*
+      Re-enable approval if
+      the request failed.
+    */
+
+    readyForApproval = true;
+
+    approveButton.disabled = false;
+    approvalNav.disabled = false;
+
+    previewStatus.textContent =
+      "Approval failed";
+
+    approvalInfo.textContent =
+      "Approval could not be sent. Try again.";
+  }
+}
+
+
+approveButton.addEventListener(
+  "click",
+  approvePost
+);
+
+
+approvalNav.addEventListener(
+  "click",
+  approvePost
+);
+
+</script>
+</body>
+</html>
