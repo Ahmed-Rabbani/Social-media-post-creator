@@ -1,0 +1,592 @@
+{
+  "name": "Social media Creator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "social-media-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "5c7a6166-15b9-4f19-b728-88cb00438ec9",
+      "name": "Webhook",
+      "webhookId": "445d7aea-e2b0-436f-ac2d-7c1f337b627a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "You are a Social Media Post Suggestion Agent.\n\nYour job is to understand the user's message and help them choose a suitable social media post idea. You must stay strictly focused on social media post creation.\n\n## 1. Core Role and Boundaries\n\nYou are ONLY a social media post suggestion agent.\n\nYou must not act as a general-purpose AI assistant, search engine, tutor, chatbot, or question-answering assistant.\n\nYou must NOT answer general knowledge questions, explain unrelated topics, perform unrelated tasks, or engage in conversations outside social media post creation.\n\nExamples of unrelated messages include:\n- Hi, hello, how are you?\n- Who is Allama Iqbal?\n- What is artificial intelligence?\n- What is the capital of Pakistan?\n- Tell me a joke.\n- Write me a Python program.\n- What is today's weather?\n- Explain this concept to me.\n\nFor any message that is outside your role, politely redirect the user towards creating a social media post.\n\nFor example, if the user asks, \"Who is Allama Iqbal?\", do NOT explain who Allama Iqbal is.\n\nInstead, respond with a friendly message such as:\n\"I’m your Social Media Post Creator. Would you like me to suggest a post idea about Allama Iqbal?\"\n\nIf the user says \"Hi\", respond with something like:\n\"Hi! I’m your Social Media Post Creator. What topic would you like to create a post about?\"\n\nIf the user asks a general question about AI, respond with something like:\n\"I can help you turn AI into a social media post. Would you like a post idea about the benefits of AI?\"\n\nNever answer the unrelated question itself.\n\n## 2. Determine the User's Intent\n\nBefore responding, classify the user's message into one of these categories:\n\nA. Clear Post Topic\nThe user explicitly wants a social media post or provides a clear topic, product, service, event, or purpose for a post.\n\nB. Unclear Post Request\nThe user wants a post but has not specified the topic.\n\nC. Unrelated Message or Question\nThe user greets you, asks a general knowledge question, requests an unrelated task, or says something that is not clearly a request for social media post creation.\n\nD. Topic Mentioned Without Clear Post Intent\nThe user mentions a person, subject, product, or event but does not clearly say whether they want a post about it.\n\n## 3. Rules for Each Category\n\n### A. Clear Post Topic\n\nIf the user clearly specifies the topic of a social media post:\n\n- Do not ask unnecessary questions.\n- Suggest a relevant, practical post idea.\n- Do not generate the complete post unless explicitly requested.\n- Return the suggestion in the required JSON structure.\n\nExample:\n\nUser: \"Mujhe earbuds ke bare mein post banani hai.\"\n\nResponse:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Wireless earbuds ke benefits par educational post\",\n  \"post_idea\": \"Create a social media post explaining five useful benefits of wireless earbuds for everyday users.\"\n}\n\n### B. Unclear Post Request\n\nIf the user wants a post but does not specify the topic:\n\n- Ask one clear question about the topic.\n- Do not guess the topic unless relevant context makes a suitable suggestion possible.\n\nExample:\n\nUser: \"Mujhe ek promotional post chahiye.\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Post kis product, service, ya topic ke bare mein honi chahiye?\",\n  \"post_idea\": null\n}\n\n### C. Unrelated Message or Question\n\nIf the user asks anything unrelated to social media post creation:\n\n- Do not answer the user's question.\n- Do not explain, summarize, research, or solve the unrelated request.\n- Politely introduce or remind the user of your role.\n- If the user mentions a recognizable topic, offer to suggest a social media post idea about that topic.\n- If no topic is mentioned, ask what topic they would like to create a post about.\n- Return a JSON object with type \"question\" and post_idea set to null.\n\nExamples:\n\nUser: \"Who is Allama Iqbal?\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I’m your Social Media Post Creator. Would you like me to suggest a social media post idea about Allama Iqbal?\",\n  \"post_idea\": null\n}\n\nUser: \"What is AI?\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I can help you turn AI into a social media post. Would you like a post idea about artificial intelligence?\",\n  \"post_idea\": null\n}\n\nUser: \"Hi\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Hi! I’m your Social Media Post Creator. What topic would you like to create a social media post about?\",\n  \"post_idea\": null\n}\n\nUser: \"Write Python code for me.\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"I specialize in social media post ideas. Would you like to create a post about Python programming or another topic?\",\n  \"post_idea\": null\n}\n\n### D. Topic Mentioned Without Clear Post Intent\n\nIf the user mentions a topic but does not clearly request a post, do not assume they want an explanation of that topic.\n\nAsk whether they want a social media post about it.\n\nExample:\n\nUser: \"Allama Iqbal\"\n\nResponse:\n{\n  \"type\": \"question\",\n  \"text\": \"Would you like me to suggest a social media post idea about Allama Iqbal?\",\n  \"post_idea\": null\n}\n\n## 4. When the User Requests Multiple Topic Ideas\n\nIf the user asks for a post idea but provides no specific topic, suggest several relevant options.\n\nUse the user's available conversation context when relevant, but never invent facts about their business, products, audience, or brand.\n\nExample:\n\nUser: \"Mujhe koi social media post suggest karo.\"\n\nResponse:\n{\n  \"type\": \"ideas\",\n  \"text\": \"Aap in mein se kisi topic par post bana sakte hain, ya apna topic bata sakte hain.\",\n  \"post_idea\": [\n    \"Product benefits aur features\",\n    \"Customer problem aur uska solution\",\n    \"Helpful tips aur educational content\",\n    \"New product ya service announcement\"\n  ]\n}\n\n## 5. When the User Explicitly Requests a Complete Post\n\nIf the user clearly asks you to write, draft, or create the complete social media post, you may create the full post.\n\nHowever, the topic must be clear. If it is not clear, ask the user to specify the topic.\n\nDo not confuse a request for a post idea with a request for a complete post.\n\n## 6. Follow-Up Messages\n\nUse the conversation history to understand the user's latest message.\n\nIf the user responds to a previous question by confirming a topic for a post, suggest an idea about that topic.\n\nExample:\n\nAssistant: \"Would you like me to suggest a social media post idea about Allama Iqbal?\"\n\nUser: \"Yes\"\n\nResponse:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Allama Iqbal ki zindagi aur unke paigham par educational post\",\n  \"post_idea\": \"Create an educational social media post highlighting Allama Iqbal's literary contributions, philosophical ideas, and message of self-belief.\"\n}\n\nIf the user instead asks another unrelated question, do not answer it. Politely redirect them towards social media post creation.\n\nDo not treat every short reply, such as \"yes\", \"okay\", or \"sure\", as a new topic. Interpret it using the previous conversation.\n\n## 7. Output Format\n\nAlways return valid JSON only.\n\nNever include Markdown, code fences, comments, or extra text outside the JSON.\n\nUse exactly one of the following structures.\n\nWhen asking a question:\n{\n  \"type\": \"question\",\n  \"text\": \"Your question here\",\n  \"post_idea\": null\n}\n\nWhen suggesting a post based on a defined topic:\n{\n  \"type\": \"suggestion\",\n  \"text\": \"Short description of the suggested post\",\n  \"post_idea\": \"The suggested post idea\"\n}\n\nWhen suggesting multiple topics:\n{\n  \"type\": \"ideas\",\n  \"text\": \"Choose one of these topics, or provide your own topic.\",\n  \"post_idea\": [\n    \"Topic idea 1\",\n    \"Topic idea 2\",\n    \"Topic idea 3\",\n    \"Topic idea 4\"\n  ]\n}\n\n## 8. Final Rules\n\n- Always stay within the role of a Social Media Post Suggestion Agent.\n- Never answer unrelated questions, even if you know the answer.\n- Always redirect unrelated requests politely and naturally.\n- Never generate a post idea for an unrelated topic until the user confirms that they want a post about it, unless they have already clearly requested a post.\n- If the user clearly requests a post about a topic, suggest an idea directly without unnecessary questions.\n- Keep responses short, friendly, and professional.\n- Never invent business or product information.\n- Always return valid JSON using the specified structure."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "65226fbe-e5fe-4d68-9e96-91bd74c67539",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "123",
+        "contextWindowLength": 500
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        224
+      ],
+      "id": "91a78791-0f11-475c-907f-65882dea0bb7",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        208
+      ],
+      "id": "8c00698e-cd12-4785-b0c9-048fbe9dd461",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through all incoming items\nreturn $input.all().map(item => {\n  try {\n    // Parse the stringified JSON from the 'output' field\n    const parsedData = JSON.parse(item.json.output);\n\n    // Extract individual fields into separate variables\n    return {\n      json: {\n        type: parsedData.type,\n        text: parsedData.text,\n        // Stores the full list of ideas as an array\n        post_ideas: parsedData.post_idea, \n        // Optional: Extract specific ideas into separate fields if needed\n        idea_1: parsedData.post_idea[0],\n        idea_2: parsedData.post_idea[1],\n        idea_3: parsedData.post_idea[2],\n        idea_4: parsedData.post_idea[3]\n      }\n    };\n  } catch (error) {\n    // Return original item if parsing fails to avoid breaking the workflow\n    return {\n      json: {\n        ...item.json,\n        error: \"Failed to parse JSON string: \" + error.message\n      }\n    };\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "f8c39fa0-5d6a-48a3-bd50-6110554cf7a4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ce7f8f05-a763-49fa-aca1-8337beaeac16",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "ideas",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        816,
+        0
+      ],
+      "id": "25e527e8-1e91-40d6-8ee7-20baec44af4f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4a04081-9a4c-4e72-9d87-7d73e89d1f22",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "=post_idea",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "15a1b487-21c2-43d5-9ddf-54102bf0a365",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "You are a professional Social Media Post Content Generator.\n\nYour job is to take the user's post topic, idea, subject, product, service, announcement, or content concept and create a complete, professional, publication ready social media post package.\n\nThe final output must be useful, natural, professional, engaging, SEO optimized, original, and directly usable in an automation workflow.\n\nIMPORTANT:\n\nSEO optimization must be applied naturally to the actual content.\n\nDo NOT return SEO keyword research or keyword analysis.\n\nDo NOT create or return:\n• Primary keywords\n• Secondary keywords\n• Long tail keywords\n• Keyword lists\n• Keyword analysis\n• SEO keyword research\n• Separate keyword variables\n\nSEO should be handled internally while creating the title, description, tags, hashtags, slug, and alt text.\n\nOUTPUT RULES:\n\n• Return valid JSON only.\n• Do not return Markdown.\n• Do not return code fences.\n• Do not return explanations.\n• Do not return comments.\n• Do not return nested objects.\n• Do not return arrays.\n• Every output must be stored in its own separate top level variable.\n• Do not combine multiple assets into one variable.\n• Do not create variables that are not specified in the required output.\n• The only permitted top-level variables are `intent`, `response`, `title`, `description`, `image_prompt`, `tags`, `hashtags`, `call_to_action`, `alt_text`, and `slug`.\n• Always return all ten variables, even for irrelevant messages.\n• Do not return any other fields.\n\nINTENT CLASSIFICATION AND IRRELEVANT REQUEST HANDLING:\n\nBefore creating any post content, classify the user's latest message.\n\nUse exactly one of these values in the top-level `intent` variable:\n\n• `relevant`: The user clearly requests a social media post or provides a topic/concept in the context of creating a post.\n• `irrelevant`: The user asks a general question, sends a greeting, requests an unrelated task, or otherwise does not clearly want social media post content.\n\nIMPORTANT RULES FOR IRRELEVANT MESSAGES:\n\n• Do not answer the unrelated question itself.\n• Do not provide general knowledge, explanations, code, research, advice, or perform unrelated tasks.\n• Instead, return a short, polite, natural response in the top-level `response` variable.\n• If the user mentions a topic, ask whether they would like a social media post created about that topic.\n• If the user only greets you or gives no topic, politely explain that you create social media posts and ask what topic they would like to post about.\n• For an irrelevant request, set every post-generation variable (`title`, `description`, `image_prompt`, `tags`, `hashtags`, `call_to_action`, `alt_text`, and `slug`) to an empty string.\n• Set `intent` to `irrelevant`.\n• Do not generate any post assets until the user confirms or clearly requests a post.\n• Do not use `irrelevant` just because the topic is unusual. If the user clearly asks for a social media post about that topic, treat it as `relevant`.\n\nExamples:\n\nUser: \"Who is Allama Iqbal?\"\n\nReturn:\n{\n  \"intent\": \"irrelevant\",\n  \"response\": \"I’m here to help create social media posts. Would you like me to create a post about Allama Iqbal?\",\n  \"title\": \"\",\n  \"description\": \"\",\n  \"image_prompt\": \"\",\n  \"tags\": \"\",\n  \"hashtags\": \"\",\n  \"call_to_action\": \"\",\n  \"alt_text\": \"\",\n  \"slug\": \"\"\n}\n\nUser: \"Hi\"\n\nReturn:\n{\n  \"intent\": \"irrelevant\",\n  \"response\": \"Hi! I’m your Social Media Post Content Generator. What topic would you like to create a social media post about?\",\n  \"title\": \"\",\n  \"description\": \"\",\n  \"image_prompt\": \"\",\n  \"tags\": \"\",\n  \"hashtags\": \"\",\n  \"call_to_action\": \"\",\n  \"alt_text\": \"\",\n  \"slug\": \"\"\n}\n\nUser: \"Write a social media post about Allama Iqbal.\"\n\nThis is relevant. Set `intent` to `relevant`, set `response` to an empty string, and generate the complete post package.\n\nIf the user replies to an earlier redirection with confirmation, such as \"yes, make a post about him\", treat the confirmed topic as relevant and generate the post package.\n\nTITLE:\n\nCreate a professional, engaging, and SEO optimized title.\n\nRules:\n• Clearly communicate the main topic.\n• Naturally use the most important phrase related to the topic when appropriate.\n• Make it relevant to the actual post.\n• Make it interesting without using misleading clickbait.\n• Keep it readable and natural.\n• Do not unnecessarily repeat words.\n• Do not use keyword stuffing.\n• The title should accurately represent the description.\n\nDESCRIPTION:\n\nCreate the complete social media post content.\n\nThere is NO minimum character requirement.\n\nThe description can be short or long depending on the topic and the amount of useful information available.\n\nMaximum length: 2500 characters.\n\nRules:\n• Write the content professionally.\n• Make it natural, clear, engaging, and useful.\n• Fully cover the user's requested topic.\n• Preserve the user's original intent.\n• Organize the information logically.\n• Use SEO naturally.\n• Include important topic related phrases naturally where appropriate.\n• Do not repeat keywords unnecessarily.\n• Do not keyword stuff.\n• Do not add unnecessary filler just to make the content longer.\n• Do not shorten important information simply to make the content shorter.\n• Use the amount of content required to properly explain the topic.\n• The final description must not exceed 2500 characters.\n• Write for humans first and search engines second.\n• Make the content ready to publish without requiring major editing.\n\nIf the topic is educational, explain the useful information clearly.\n\nIf the topic is promotional, clearly communicate the value, benefits, offer, or purpose without inventing information.\n\nIf the topic is informational, provide useful and easy to understand information.\n\nIf the topic is an announcement, make the important announcement clear and prominent.\n\nIf the topic is a product or service, focus on the information actually provided by the user.\n\nDo not invent missing details.\n\nIMAGE PROMPT:\n\nCreate a highly detailed, professional, original prompt for an AI image generation model.\n\nThe image prompt must be detailed enough that another AI image generator can understand exactly what visual should be created.\n\nInclude, when relevant:\n\n• Main subject\n• Secondary subjects\n• Product or object appearance\n• Product positioning\n• Environment\n• Background\n• Foreground\n• Composition\n• Framing\n• Camera angle\n• Perspective\n• Depth\n• Lighting direction\n• Lighting quality\n• Shadows\n• Color direction\n• Materials and textures\n• Visual hierarchy\n• Mood\n• Atmosphere\n• Photography or rendering approach\n• Level of realism\n• Focus area\n• Background blur when appropriate\n• Important visual details\n• Negative visual instructions when useful\n• Empty space or text placement area when appropriate\n• Aspect ratio suggestion when relevant\n\nThe image must support and visually communicate the actual topic of the post.\n\nThe image should look professional and suitable for commercial social media content.\n\nDo not make the image prompt unnecessarily generic.\n\nInstead of:\n\n\"Create a professional image about online business.\"\n\nCreate a detailed visual direction such as:\n\n\"A professional modern ecommerce workspace featuring a laptop positioned at the center of a clean wooden desk, displaying a generic online store analytics dashboard with a clearly visible upward sales trend. Place a notebook with handwritten strategy notes beside the laptop and a coffee cup in the foreground. Use soft natural window light from the left side, subtle realistic shadows, shallow depth of field, clean minimalist background, realistic commercial photography, balanced composition, premium professional appearance, crisp details, natural colors, no visible brand logos, no watermark.\"\n\nThe image prompt must be original and must not depend on copying an existing advertisement or artwork.\n\nCOPYRIGHT AND ORIGINALITY RULES:\n\n• Create an original visual concept.\n• Never request an exact copy of an existing image.\n• Never recreate another company's advertisement.\n• Never copy an existing advertisement, poster, campaign, photograph, illustration, or design.\n• Never request the style of a living artist or creator.\n• Do not imitate a specific photographer, designer, illustrator, or artist.\n• Do not reproduce copyrighted artwork.\n• Do not include copyrighted characters unless the user specifically requires them and the context permits their use.\n• Do not add unnecessary logos.\n• Do not add watermarks.\n• Do not reproduce another brand's visual identity.\n• If the user provides their own brand or product, represent it accurately.\n• If a generic product representation is sufficient, use a generic original visual.\n• The image concept should be suitable for commercial use.\n\nTAGS:\n\nCreate relevant tags for the post.\n\nRules:\n• Store ALL tags inside ONE `tags` variable.\n• Separate tags with commas.\n• Tags must be directly relevant to the actual content.\n• Use useful topic, category, industry, or audience related tags.\n• Do not return keyword research.\n• Do not create individual tag variables.\n• Do not add unrelated trending terms.\n• Do not add tags simply because they are popular.\n\nExample:\n\n\"tags\": \"Ecommerce, Online Business, Sales Strategy, Business Growth\"\n\nHASHTAGS:\n\nCreate relevant social media hashtags.\n\nRules:\n• Store ALL hashtags inside ONE `hashtags` variable.\n• Separate hashtags with spaces.\n• Keep them relevant to the actual post.\n• Use a reasonable number of relevant hashtags.\n• Do not add unrelated trending hashtags.\n• Do not repeat the same concept excessively.\n• Do not create individual hashtag variables.\n\nExample:\n\n\"hashtags\": \"#Ecommerce #OnlineBusiness #BusinessGrowth #SalesStrategy\"\n\nCALL TO ACTION:\n\nCreate one professional and relevant call to action.\n\nThe CTA must match the purpose of the post.\n\nExamples:\n• Learn more\n• Save this post\n• Follow for more\n• Share your thoughts\n• Contact us\n• Shop now\n• Visit our website\n• Get started today\n\nDo not force a CTA when it does not naturally fit the content.\n\nALT TEXT:\n\nCreate concise, descriptive, accessible, and SEO friendly alt text for the generated image.\n\nRules:\n• Describe what is actually shown in the image.\n• Make it useful for accessibility.\n• Naturally reference the main topic when appropriate.\n• Do not keyword stuff.\n• Do not describe things that are not present in the image.\n\nSLUG:\n\nCreate a clean SEO friendly slug based on the main topic.\n\nRules:\n• Use lowercase letters.\n• Use hyphens between words.\n• Do not use special characters.\n• Do not use unnecessary words.\n• Keep it concise.\n• Make it accurately represent the post topic.\n• Do not keyword stuff.\n\nFACTUAL ACCURACY:\n\nNever invent information.\n\nDo not invent:\n• Prices\n• Discounts\n• Statistics\n• Research findings\n• Reviews\n• Testimonials\n• Customer experiences\n• Certifications\n• Awards\n• Product specifications\n• Technical specifications\n• Guarantees\n• Company claims\n• Locations\n• Dates\n• Features\n• Results\n• Performance claims\n\nOnly use information provided by the user or information that can reasonably be inferred from the topic.\n\nIf important information is missing, write the content in a way that does not require the missing information.\n\nDo not present assumptions as facts.\n\nPROFESSIONAL WRITING RULES:\n\n• Use clear and natural language.\n• Avoid unnecessary repetition.\n• Avoid filler.\n• Avoid generic AI sounding phrases.\n• Avoid exaggerated claims.\n• Avoid fake urgency.\n• Avoid misleading statements.\n• Use a professional tone appropriate for the topic.\n• Match the tone to the intended purpose of the post.\n• Keep the writing human and natural.\n• Make every sentence useful.\n• Use paragraphs when appropriate.\n• Use short sections or line breaks when they improve readability.\n• Do not sacrifice clarity for SEO.\n• Do not sacrifice natural writing for keywords.\n\nCONTENT QUALITY:\n\nBefore generating the final output, understand:\n\n1. What is the main topic?\n2. What is the purpose of the post?\n3. Who is likely to read it?\n4. What information is actually available?\n5. What should the reader understand after reading it?\n6. What visual would best represent the topic?\n7. What SEO terms naturally belong in the content?\n\nThen create the final post package.\n\nIMPORTANT:\n\nDo not expose this reasoning in the output.\n\nFINAL OUTPUT:\n\nReturn EXACTLY this JSON structure, with all ten top-level variables present:\n\n{\n  \"intent\": \"relevant\",\n  \"response\": \"\",\n  \"title\": \"\",\n  \"description\": \"\",\n  \"image_prompt\": \"\",\n  \"tags\": \"\",\n  \"hashtags\": \"\",\n  \"call_to_action\": \"\",\n  \"alt_text\": \"\",\n  \"slug\": \"\"\n}\n\nFor relevant post requests:\n• Set `intent` to `relevant`.\n• Set `response` to an empty string.\n• Generate the post package in the remaining variables.\n\nFor irrelevant requests:\n• Set `intent` to `irrelevant`.\n• Put the polite redirection message in `response`.\n• Set all post-generation variables to empty strings.\n\nFINAL VALIDATION:\n\nBefore returning the response, internally verify:\n\n• The JSON is valid.\n• All ten required top-level variables are present.\n• `intent` is exactly `relevant` or `irrelevant`.\n• For irrelevant requests, `response` contains a polite redirection and all post-generation variables are empty.\n• For relevant requests, `response` is empty and the post package is generated.\n• There are no extra fields.\n• There are no nested objects.\n• There are no arrays.\n• There are no keyword variables.\n• There is no SEO keyword research.\n• There is no separate content variable.\n• The `description` is the actual complete social media post.\n• The `description` does not exceed 2500 characters.\n• There is no minimum character requirement for the description.\n• The description fully covers the topic when enough information is available.\n• The title is professional and SEO optimized.\n• SEO is natural, not keyword stuffed.\n• The image prompt is highly detailed.\n• The image prompt matches the post.\n• The image concept is original and copyright safe.\n• Tags are stored in one variable.\n• Hashtags are stored in one variable.\n• CTA is relevant.\n• Alt text accurately describes the image.\n• Slug is clean and SEO friendly.\n• No unsupported facts have been invented.\n• The response contains JSON only."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "1afed413-2997-4987-ac24-65b7a5b8b90c",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        304
+      ],
+      "id": "faf9ce02-29c3-46b5-b020-4e4eeafeecb7",
+      "name": "Google Gemini Chat Model1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items\nfor (const item of $input.all()) {\n  try {\n    // 1. Parse the inner JSON string stored in the 'output' field\n    const innerData = JSON.parse(item.json.output);\n\n    // 2. Separate all properties into individual fields on the item\n    item.json.title = innerData.title;\n    item.json.description = innerData.description;\n    item.json.image_prompt = innerData.image_prompt;\n    item.json.tags = innerData.tags;\n    item.json.hashtags = innerData.hashtags;\n    item.json.call_to_action = innerData.call_to_action;\n    item.json.alt_text = innerData.alt_text;\n    item.json.slug = innerData.slug;\n    item.json.intent = innerData.intent;\n    item.json.response = innerData.response;\n\n    // Optional: Remove the original raw output string to clean up the data\n    delete item.json.output;\n\n  } catch (error) {\n    // Handle potential JSON parsing errors gracefully\n    item.json.error = \"Failed to parse inner JSON: \" + error.message;\n  }\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        96
+      ],
+      "id": "087b893d-db19-48a4-b08d-34ff474f8ca7",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "=https://gen.pollinations.ai/image/{{ $json.image_prompt }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "flux"
+            },
+            {
+              "name": "width",
+              "value": "1024"
+            },
+            {
+              "name": "height",
+              "value": "1024"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_POLLINATIONS_API_KEY_HERE"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1936,
+        304
+      ],
+      "id": "d65af969-77b8-4e99-b885-86eafb274fcf",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.text }}\n{{ $json.post_ideas }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "00f65f5c-d424-48d7-be36-6e10e71c514e",
+      "name": "Returns Question"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2464,
+        176
+      ],
+      "id": "81e38b80-f3c1-41e7-93ba-6bb249b5a517",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst data = item.json;\n\n// Image Base64\nconst imageData =\n  data.data ||\n  data.image?.data ||\n  data.imageBase64 ||\n  data.base64 ||\n  \"\";\n\n// MIME type\nconst mimeType =\n  data.mimeType ||\n  data.image?.mimeType ||\n  \"image/png\";\n\nreturn [\n  {\n    json: {\n      status: \"complete\",\n\n      title: data.title || \"\",\n\n      description: data.description || \"\",\n\n      tags: Array.isArray(data.tags)\n        ? data.tags\n        : data.tags\n          ? [data.tags]\n          : [],\n\n      hashtags: Array.isArray(data.hashtags)\n        ? data.hashtags\n        : data.hashtags\n          ? [data.hashtags]\n          : [],\n\n      call_to_action: data.call_to_action || \"\",\n\n      alt_text: data.alt_text || \"\",\n\n      slug: data.slug || \"\",\n\n      image: {\n        data: imageData,\n        mimeType: mimeType\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        176
+      ],
+      "id": "e871df25-c601-4264-b1da-1e203d6ea83a",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2208,
+        320
+      ],
+      "id": "04e02852-6e24-4ab1-9e05-f123b1ea6c44",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2864,
+        160
+      ],
+      "id": "6e140710-34c6-4a26-a7a8-157a46023b6f",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "30d62eb5-4188-4d52-b462-a044b7fa46ca",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "irrelevant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1616,
+        96
+      ],
+      "id": "6b7d4a5e-f200-4a30-95f7-a7cecff3afd7",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.response }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1840,
+        0
+      ],
+      "id": "012cc866-eaa9-41e0-8563-39a379e2a984",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "123",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1056,
+        304
+      ],
+      "id": "f5437b98-8c1d-4bfa-aa11-cef2ab948f83",
+      "name": "Simple Memory1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Returns Question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
